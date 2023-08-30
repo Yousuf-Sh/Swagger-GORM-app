@@ -44,6 +44,9 @@ func NewUserAPIAPI(spec *loads.Document) *UserAPIAPI {
 
 		JSONProducer: runtime.JSONProducer(),
 
+		UsersPostLoginHandler: users.PostLoginHandlerFunc(func(params users.PostLoginParams) middleware.Responder {
+			return middleware.NotImplemented("operation users.PostLogin has not yet been implemented")
+		}),
 		UsersCreateUserHandler: users.CreateUserHandlerFunc(func(params users.CreateUserParams) middleware.Responder {
 			return middleware.NotImplemented("operation users.CreateUser has not yet been implemented")
 		}),
@@ -95,6 +98,8 @@ type UserAPIAPI struct {
 	//   - application/json
 	JSONProducer runtime.Producer
 
+	// UsersPostLoginHandler sets the operation handler for the post login operation
+	UsersPostLoginHandler users.PostLoginHandler
 	// UsersCreateUserHandler sets the operation handler for the create user operation
 	UsersCreateUserHandler users.CreateUserHandler
 	// UsersDeleteUserHandler sets the operation handler for the delete user operation
@@ -182,6 +187,9 @@ func (o *UserAPIAPI) Validate() error {
 		unregistered = append(unregistered, "JSONProducer")
 	}
 
+	if o.UsersPostLoginHandler == nil {
+		unregistered = append(unregistered, "users.PostLoginHandler")
+	}
 	if o.UsersCreateUserHandler == nil {
 		unregistered = append(unregistered, "users.CreateUserHandler")
 	}
@@ -285,6 +293,10 @@ func (o *UserAPIAPI) initHandlerCache() {
 		o.handlers = make(map[string]map[string]http.Handler)
 	}
 
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/login"] = users.NewPostLogin(o.context, o.UsersPostLoginHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}

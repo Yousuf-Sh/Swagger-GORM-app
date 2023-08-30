@@ -35,6 +35,50 @@ func init() {
   },
   "basePath": "/v1",
   "paths": {
+    "/login": {
+      "post": {
+        "tags": [
+          "users"
+        ],
+        "summary": "JWT auth",
+        "parameters": [
+          {
+            "name": "userLogin",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "username",
+                "password"
+              ],
+              "properties": {
+                "password": {
+                  "type": "string"
+                },
+                "username": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JWT token successfully obtained",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server error while logging in"
+          }
+        }
+      }
+    },
     "/users": {
       "get": {
         "tags": [
@@ -185,7 +229,8 @@ func init() {
       "type": "object",
       "required": [
         "name",
-        "email"
+        "email",
+        "password"
       ],
       "properties": {
         "email": {
@@ -196,6 +241,12 @@ func init() {
           "format": "int64"
         },
         "name": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "uuid": {
           "type": "string"
         }
       }
@@ -220,6 +271,50 @@ func init() {
   },
   "basePath": "/v1",
   "paths": {
+    "/login": {
+      "post": {
+        "tags": [
+          "users"
+        ],
+        "summary": "JWT auth",
+        "parameters": [
+          {
+            "name": "userLogin",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "username",
+                "password"
+              ],
+              "properties": {
+                "password": {
+                  "type": "string"
+                },
+                "username": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JWT token successfully obtained",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server error while logging in"
+          }
+        }
+      }
+    },
     "/users": {
       "get": {
         "tags": [
@@ -370,7 +465,8 @@ func init() {
       "type": "object",
       "required": [
         "name",
-        "email"
+        "email",
+        "password"
       ],
       "properties": {
         "email": {
@@ -381,6 +477,12 @@ func init() {
           "format": "int64"
         },
         "name": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "uuid": {
           "type": "string"
         }
       }

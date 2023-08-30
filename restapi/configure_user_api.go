@@ -5,6 +5,8 @@ package restapi
 import (
 	"Swagger-Gorm-app/models"
 	"crypto/tls"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
 
 	"gorm.io/gorm"
 
@@ -64,6 +66,7 @@ func configureAPI(api *operations.UserAPIAPI) http.Handler {
 	api.UsersDeleteUserHandler = users.DeleteUserHandlerFunc(deleteUser)
 	api.UsersGetUsersHandler = users.GetUsersHandlerFunc(getUsers)
 	api.UsersGetUserByIDHandler = users.GetUserByIDHandlerFunc(getUsersByID)
+	api.UsersPostLoginHandler = users.PostLoginHandlerFunc(login)
 
 	if api.UsersCreateUserHandler == nil {
 		api.UsersCreateUserHandler = users.CreateUserHandlerFunc(func(params users.CreateUserParams) middleware.Responder {
@@ -98,7 +101,44 @@ func configureAPI(api *operations.UserAPIAPI) http.Handler {
 	return setupGlobalMiddleware(api.Serve(setupMiddlewares))
 }
 
+func login(params users.PostLoginParams) middleware.Responder {
+	var user dbUser
+	result := DB.Where("name = ? AND password = ?", params.UserLogin.Username, params.UserLogin.Password).First(&user)
+	if result.Error != nil {
+		return users.NewPostLoginUnauthorized()
+	}
+
+	if user.UID == "" {
+		user.UID = uuid.New().String()
+		DB.Save(&user)
+	}
+
+	// Get the user's UUID from the database
+	userUUID := user.UID
+
+	// Create JWT claims with username, UUID, and password
+	claims := jwt.MapClaims{
+		"username": params.UserLogin.Username,
+		"uuid":     userUUID,
+		"password": params.UserLogin.Password,
+	}
+
+	// Create a new token with claims
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	// Sign the token with a secret key
+	tokenString, err := token.SignedString([]byte("your-secret-key"))
+	if err != nil {
+		return users.NewPostLoginInternalServerError()
+	}
+
+	return users.NewPostLoginOK().WithPayload(tokenString)
+}
+
 func getUsersByID(params users.GetUserByIDParams) middleware.Responder {
+	if !authenticated {
+		return users.NewPostLoginUnauthorized()
+	}
 	userID := params.ID
 
 	var user User
@@ -121,6 +161,9 @@ func getUsersByID(params users.GetUserByIDParams) middleware.Responder {
 }
 
 func getUsers(params users.GetUsersParams) middleware.Responder {
+	if !authenticated {
+		return users.NewPostLoginUnauthorized()
+	}
 	var userList []*models.User
 
 	// Retrieve all users from the database using GORM
@@ -144,12 +187,24 @@ func getUsers(params users.GetUsersParams) middleware.Responder {
 	// Return the list of users
 	return users.NewGetUsersOK().WithPayload(userList)
 }
+
 func createUser(params users.CreateUserParams) middleware.Responder {
-	// Extract the user data from params
+	_, err := ValidateHeader(params.HTTPRequest.Header.Get("Authorization"))
+	if err != nil {
+		return users.NewPostLoginUnauthorized()
+	}
+	if !authenticated {
+		return users.NewPostLoginUnauthorized()
+	}
+
+	uniqueUserid := uuid.New().String()
+
 	user := params.User
 	newUser := dbUser{
-		Name:  user.Name,
-		Email: user.Email,
+		UID:      uniqueUserid,
+		Name:     user.Name,
+		Email:    user.Email,
+		Password: user.Password,
 	}
 
 	result := DB.Create(&newUser)
@@ -163,11 +218,13 @@ func createUser(params users.CreateUserParams) middleware.Responder {
 }
 
 func updateUser(params users.UpdateUserParams) middleware.Responder {
-	// Extract the user data from params
+	if !authenticated {
+		return users.NewPostLoginUnauthorized()
+	}
 	userID := params.ID
 	user := params.User
 
-	// Find the user with the given ID
+	// Find the user with the given UID
 	var existingUser User
 	result := DB.First(&existingUser, userID)
 	if result.Error != nil {
@@ -190,15 +247,17 @@ func updateUser(params users.UpdateUserParams) middleware.Responder {
 		return users.NewUpdateUserBadRequest()
 	}
 
-	log.Printf("Updated user with ID %d", userID)
+	log.Printf("Updated user with UID %d", userID)
 	return users.NewUpdateUserOK()
 }
 
 func deleteUser(params users.DeleteUserParams) middleware.Responder {
-	// Extract the user ID from params
+	if !authenticated {
+		return users.NewPostLoginUnauthorized()
+	}
 	userID := params.ID
 
-	// Find the user with the given ID
+	// Find the user with the given UID
 	var user User
 	result := DB.First(&user, userID)
 	if result.Error != nil {

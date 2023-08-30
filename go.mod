@@ -3,6 +3,7 @@ module Swagger-Gorm-app
 go 1.20
 
 require (
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-openapi/errors v0.20.4
 	github.com/go-openapi/loads v0.21.2
 	github.com/go-openapi/runtime v0.26.0
@@ -10,6 +11,7 @@ require (
 	github.com/go-openapi/strfmt v0.21.7
 	github.com/go-openapi/swag v0.22.4
 	github.com/go-openapi/validate v0.22.1
+	github.com/google/uuid v1.3.1
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/mattn/go-sqlite3 v1.14.17
 	golang.org/x/net v0.13.0

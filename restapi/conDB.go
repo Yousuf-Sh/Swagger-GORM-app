@@ -8,12 +8,14 @@ import (
 // Define the User model for GORM
 type dbUser struct {
 	gorm.Model
-	Name  *string `gorm:"column:name"`
-	Email *string `gorm:"column:email"`
+	UID      string  `gorm:"type:uuid;primaryKey;column:uuid"`
+	Name     *string `gorm:"column:name"`
+	Email    *string `gorm:"column:email"`
+	Password *string `gorm:"column:password"`
 }
 
 func (dbUser) TableName() string {
-	return "db_users"
+	return "A_users"
 }
 
 var DB *gorm.DB

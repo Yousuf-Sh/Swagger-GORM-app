@@ -14,39 +14,25 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// User user
+// LoginInfo login info
 //
-// swagger:model User
-type User struct {
+// swagger:model LoginInfo
+type LoginInfo struct {
 
 	// email
 	// Required: true
 	Email *string `json:"email"`
 
-	// id
-	ID int64 `json:"id,omitempty"`
-
-	// name
-	// Required: true
-	Name *string `json:"name"`
-
 	// password
 	// Required: true
 	Password *string `json:"password"`
-
-	// uuid
-	UUID string `json:"uuid,omitempty"`
 }
 
-// Validate validates this user
-func (m *User) Validate(formats strfmt.Registry) error {
+// Validate validates this login info
+func (m *LoginInfo) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateEmail(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateName(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -60,7 +46,7 @@ func (m *User) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *User) validateEmail(formats strfmt.Registry) error {
+func (m *LoginInfo) validateEmail(formats strfmt.Registry) error {
 
 	if err := validate.Required("email", "body", m.Email); err != nil {
 		return err
@@ -69,16 +55,7 @@ func (m *User) validateEmail(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *User) validateName(formats strfmt.Registry) error {
-
-	if err := validate.Required("name", "body", m.Name); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *User) validatePassword(formats strfmt.Registry) error {
+func (m *LoginInfo) validatePassword(formats strfmt.Registry) error {
 
 	if err := validate.Required("password", "body", m.Password); err != nil {
 		return err
@@ -87,13 +64,13 @@ func (m *User) validatePassword(formats strfmt.Registry) error {
 	return nil
 }
 
-// ContextValidate validates this user based on context it is used
-func (m *User) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validates this login info based on context it is used
+func (m *LoginInfo) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (m *User) MarshalBinary() ([]byte, error) {
+func (m *LoginInfo) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -101,8 +78,8 @@ func (m *User) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *User) UnmarshalBinary(b []byte) error {
-	var res User
+func (m *LoginInfo) UnmarshalBinary(b []byte) error {
+	var res LoginInfo
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}
